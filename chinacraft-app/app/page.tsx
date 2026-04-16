@@ -16,7 +16,7 @@ export default function Home() {
         <DrawingPad />
         <SearchSidebar query={searchQuery} onQueryChange={setSearchQuery} />
       </div>
-      {showResults ? <ResultGrid /> : null}
+      {showResults ? <ResultGrid query={searchQuery} /> : null}
     </div>
   );
 }
