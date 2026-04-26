@@ -5,13 +5,14 @@ import { NextResponse } from "next/server";
 type HanziEntry = {
   index: number;
   char: string;
+  traditional?: string;
   strokes: number;
   pinyin: string[];
   radicals: string;
   frequency: number;
   structure: string;
   translation_ru: string;
-  hsk_level: number;
+  hsk_level?: number;
 };
 
 let cachedEntries: HanziEntry[] | null = null;
@@ -40,24 +41,37 @@ async function getEntries(): Promise<HanziEntry[]> {
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const query = (searchParams.get("q") ?? "").trim();
+  const limit = Math.min(
+    Math.max(Number(searchParams.get("limit") ?? 8) || 8, 1),
+    24
+  );
 
   if (!query) {
-    return NextResponse.json({ entry: null });
+    return NextResponse.json({ entries: [] });
   }
 
   const entries = await getEntries();
   const normalizedQuery = normalizePinyin(query);
 
-  const byChar = entries.find((item) => item.char === query);
-  const byPinyin =
-    byChar ??
-    entries.find((item) =>
-      item.pinyin.some(
-        (p) =>
-          p.toLowerCase() === query.toLowerCase() ||
-          normalizePinyin(p) === normalizedQuery
-      )
-    );
+  const byChar = entries.filter((item) => item.char === query);
+  const exactPinyin = entries.filter((item) =>
+    item.pinyin.some(
+      (p) =>
+        p.toLowerCase() === query.toLowerCase() ||
+        normalizePinyin(p) === normalizedQuery
+    )
+  );
+  const containsPinyin = entries.filter((item) =>
+    item.pinyin.some((p) => normalizePinyin(p).includes(normalizedQuery))
+  );
 
-  return NextResponse.json({ entry: byPinyin ?? null });
+  const deduped = new Map<string, HanziEntry>();
+  for (const item of [...byChar, ...exactPinyin, ...containsPinyin]) {
+    if (!deduped.has(item.char)) {
+      deduped.set(item.char, item);
+    }
+    if (deduped.size >= limit) break;
+  }
+
+  return NextResponse.json({ entries: Array.from(deduped.values()) });
 }

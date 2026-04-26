@@ -1,31 +1,23 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
-type HanziEntry = {
-  index: number;
-  char: string;
-  strokes: number;
-  pinyin: string[];
-  radicals: string;
-  frequency: number;
-  structure: string;
-  translation_ru: string;
-  hsk_level: number;
-};
+import type { SearchFilters, SearchResponse } from "../types/search";
 
 type Props = {
   query: string;
+  imageDataUrl: string | null;
+  filters: SearchFilters;
+  trigger: number;
 };
 
-export function ResultGrid({ query }: Props) {
-  const [entry, setEntry] = useState<HanziEntry | null>(null);
+export function ResultGrid({ query, imageDataUrl, filters, trigger }: Props) {
+  const [result, setResult] = useState<SearchResponse | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const trimmed = query.trim();
-    if (!trimmed) {
-      setEntry(null);
+    if (!trimmed && !imageDataUrl) {
+      setResult(null);
       return;
     }
 
@@ -33,14 +25,21 @@ export function ResultGrid({ query }: Props) {
     const run = async () => {
       try {
         setLoading(true);
-        const response = await fetch(
-          `/api/hanzi?q=${encodeURIComponent(trimmed)}`,
-          { signal: controller.signal }
-        );
-        const data = (await response.json()) as { entry: HanziEntry | null };
-        setEntry(data.entry);
+        const response = await fetch("/api/similar", {
+          method: "POST",
+          signal: controller.signal,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            query: trimmed,
+            imageDataUrl,
+            filters,
+          }),
+        });
+        if (!response.ok) throw new Error("search failed");
+        const data = (await response.json()) as SearchResponse;
+        setResult(data);
       } catch {
-        setEntry(null);
+        setResult(null);
       } finally {
         setLoading(false);
       }
@@ -48,7 +47,7 @@ export function ResultGrid({ query }: Props) {
 
     run();
     return () => controller.abort();
-  }, [query]);
+  }, [query, imageDataUrl, trigger, filters]);
 
   if (loading) {
     return (
@@ -60,41 +59,41 @@ export function ResultGrid({ query }: Props) {
     );
   }
 
-  if (!entry) {
+  if (!result || result.candidates.length === 0) {
     return (
       <section className="grid grid-cols-1">
         <div className="w-full rounded-[22px] bg-[#b2acaf] p-6 text-[#4a3535]">
-          Ничего не найдено по запросу &quot;{query}&quot;.
+          Ничего не найдено.
         </div>
       </section>
     );
   }
 
-  const infoRows: Array<[string, string | number]> = [
-    ["Пиньинь", entry.pinyin.join(", ")],
-    ["Штрихи", entry.strokes],
-    ["Радикалы", entry.radicals],
-    ["Встречаемость", entry.frequency],
-    ["Структура", entry.structure],
-    ["Перевод", entry.translation_ru],
-    ["HSK уровень", entry.hsk_level],
-  ];
-
   return (
-    <section className="grid grid-cols-1">
-      <div className="w-full rounded-[22px] bg-[#b50709] p-6 text-white">
-        <div className="mb-5 text-7xl leading-none">{entry.char}</div>
-        <div className="grid grid-cols-1 gap-2 text-sm md:grid-cols-2">
-          {infoRows.map(([label, value]) => (
-            <div
-              key={label}
-              className="rounded-lg bg-white/10 px-3 py-2 backdrop-blur-[1px]"
-            >
-              <span className="mr-2 text-white/75">{label}:</span>
-              <span>{value}</span>
-            </div>
-          ))}
-        </div>
+    <section className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+      {result.candidates.map((item, idx) => (
+        <article
+          key={`${item.char}-${idx}`}
+          className={`rounded-[22px] p-6 ${
+            idx === 0 ? "bg-[#b50709] text-white" : "bg-[#b2acaf] text-[#4a3535]"
+          }`}
+        >
+          <div className="mb-3 text-6xl leading-none">{item.char}</div>
+          <div className="space-y-1 text-sm">
+            <div>Схожесть: {(item.score * 100).toFixed(1)}%</div>
+            <div>Пиньинь: {item.pinyin?.join(", ") || "—"}</div>
+            <div>HSK: {item.hsk_level ?? "—"}</div>
+            <div>Штрихи: {item.strokes ?? "—"}</div>
+            <div>Перевод: {item.translation_ru || "—"}</div>
+          </div>
+          {item.sample_image ? (
+            <div className="mt-3 truncate text-xs opacity-75">{item.sample_image}</div>
+          ) : null}
+        </article>
+      ))}
+      <div className="col-span-full rounded-[22px] bg-[#bcb6b8] p-3 text-xs text-[#5a5052]">
+        model={result.model_version}; index={result.index_version}; mode=
+        {result.query_type}
       </div>
     </section>
   );

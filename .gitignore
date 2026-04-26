@@ -1,0 +1,15 @@
+archive/
+Dataset/
+Model/
+__pycache__/
+*.pyc
+*.pt
+*.pth
+*.onnx
+*.index
+*.npy
+*.zip
+*.rar
+*.7z
+*.tar
+*.tar.gz

@@ -1,10 +1,20 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ChangeEvent,
+} from "react";
 
 type Tool = "brush" | "eraser";
 
-export function DrawingPad() {
+type Props = {
+  onSubmitImage: (dataUrl: string) => void;
+};
+
+export function DrawingPad({ onSubmitImage }: Props) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [tool, setTool] = useState<Tool>("brush");
@@ -122,13 +132,18 @@ export function DrawingPad() {
     octx.imageSmoothingQuality = "high";
     octx.drawImage(canvas, 0, 0, 128, 128);
     const dataUrl = out.toDataURL("image/png");
-    if (typeof window !== "undefined") {
-      window.dispatchEvent(
-        new CustomEvent("chinacraft-drawing-128", {
-          detail: { dataUrl, width: 128, height: 128 },
-        })
-      );
-    }
+    onSubmitImage(dataUrl);
+  };
+
+  const onUploadFile = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") onSubmitImage(reader.result);
+    };
+    reader.readAsDataURL(file);
+    e.currentTarget.value = "";
   };
 
   return (
@@ -136,7 +151,7 @@ export function DrawingPad() {
       <div className="rounded-[26px] bg-[#bcb6b8] p-5">
         <div
           ref={wrapRef}
-          className="relative aspect-[4/3] w-full overflow-hidden rounded-[20px] bg-white"
+          className="relative h-[46vh] min-h-[260px] w-full overflow-hidden rounded-[20px] bg-white"
         >
           <canvas
             ref={canvasRef}
@@ -215,6 +230,15 @@ export function DrawingPad() {
       >
         Отправить фото
       </button>
+      <label className="mt-2 block w-full cursor-pointer rounded-full bg-[#bcb6b8] py-2.5 text-center text-sm font-medium text-[#4a3535] transition hover:opacity-90">
+        Загрузить свое фото
+        <input
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={onUploadFile}
+        />
+      </label>
     </div>
   );
 }

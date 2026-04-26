@@ -1,13 +1,23 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import type { SearchFilters } from "../types/search";
 
 type Props = {
   query: string;
   onQueryChange: (q: string) => void;
+  filters: SearchFilters;
+  onFiltersChange: (next: SearchFilters) => void;
+  onSubmitText: () => void;
 };
 
-export function SearchSidebar({ query, onQueryChange }: Props) {
+export function SearchSidebar({
+  query,
+  onQueryChange,
+  filters,
+  onFiltersChange,
+  onSubmitText,
+}: Props) {
   const [history, setHistory] = useState<string[]>([]);
 
   const pushHistory = useCallback((raw: string) => {
@@ -18,6 +28,7 @@ export function SearchSidebar({ query, onQueryChange }: Props) {
 
   const submitSearch = () => {
     pushHistory(query);
+    onSubmitText();
   };
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -50,16 +61,73 @@ export function SearchSidebar({ query, onQueryChange }: Props) {
         </button>
       </div>
 
-      <div className="mb-3 flex gap-3">
-        {(["1", "2", "3"] as const).map((label) => (
-          <button
-            key={label}
-            type="button"
-            className="h-8 flex-1 rounded-full bg-[#ada8aa] text-sm text-[#5a5052] transition hover:bg-[#a39ea0]"
+      <div className="mb-3 grid grid-cols-2 gap-3">
+        <label className="text-xs text-[#5a5052]">
+          Top-K
+          <select
+            value={filters.topK}
+            onChange={(e) =>
+              onFiltersChange({ ...filters, topK: Number(e.target.value) })
+            }
+            className="mt-1 h-8 w-full rounded-full bg-[#ada8aa] px-3 text-sm outline-none"
           >
-            {label}
-          </button>
-        ))}
+            {[3, 6, 9, 12].map((n) => (
+              <option key={n} value={n}>
+                {n}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="text-xs text-[#5a5052]">
+          HSK
+          <select
+            value={filters.hskLevel ?? ""}
+            onChange={(e) =>
+              onFiltersChange({
+                ...filters,
+                hskLevel: e.target.value ? Number(e.target.value) : undefined,
+              })
+            }
+            className="mt-1 h-8 w-full rounded-full bg-[#ada8aa] px-3 text-sm outline-none"
+          >
+            <option value="">Любой</option>
+            {[1, 2, 3, 4, 5, 6].map((n) => (
+              <option key={n} value={n}>
+                HSK {n}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="text-xs text-[#5a5052]">
+          Мин. штрихов
+          <input
+            type="number"
+            value={filters.strokesMin ?? ""}
+            onChange={(e) =>
+              onFiltersChange({
+                ...filters,
+                strokesMin: e.target.value ? Number(e.target.value) : undefined,
+              })
+            }
+            className="mt-1 h-8 w-full rounded-full bg-[#ada8aa] px-3 text-sm outline-none"
+            min={1}
+          />
+        </label>
+        <label className="text-xs text-[#5a5052]">
+          Макс. штрихов
+          <input
+            type="number"
+            value={filters.strokesMax ?? ""}
+            onChange={(e) =>
+              onFiltersChange({
+                ...filters,
+                strokesMax: e.target.value ? Number(e.target.value) : undefined,
+              })
+            }
+            className="mt-1 h-8 w-full rounded-full bg-[#ada8aa] px-3 text-sm outline-none"
+            min={1}
+          />
+        </label>
       </div>
 
       <div className="max-h-[165px] overflow-y-auto rounded-[24px] bg-[#bcb6b8] p-3">

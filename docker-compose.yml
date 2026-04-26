@@ -1,0 +1,9 @@
+services:
+  web:
+    build:
+      context: ./chinacraft-app
+      dockerfile: Dockerfile
+    container_name: chinacraft-web
+    ports:
+      - "3000:3000"
+
