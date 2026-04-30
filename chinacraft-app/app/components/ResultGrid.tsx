@@ -32,6 +32,12 @@ export function ResultGrid({
     const run = async () => {
       try {
         setLoading(true);
+        const similarFilters = {
+          topK: filters.topK,
+          hskLevel: filters.hskLevel,
+          strokesMin: filters.strokesMin,
+          strokesMax: filters.strokesMax,
+        };
         const response = await fetch("/api/similar", {
           method: "POST",
           signal: controller.signal,
@@ -39,7 +45,7 @@ export function ResultGrid({
           body: JSON.stringify({
             query: trimmed,
             imageDataUrl,
-            filters,
+            filters: similarFilters,
           }),
         });
         if (!response.ok) throw new Error("search failed");
@@ -95,9 +101,6 @@ export function ResultGrid({
               <div>Перевод: {item.translation_ru || "—"}</div>
             ) : null}
           </div>
-          {item.sample_image ? (
-            <div className="mt-3 truncate text-xs opacity-75">{item.sample_image}</div>
-          ) : null}
         </article>
       ))}
       <div className="col-span-full rounded-[22px] bg-[#bcb6b8] p-3 text-xs text-[#5a5052]">

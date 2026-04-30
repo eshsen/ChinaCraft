@@ -51,6 +51,18 @@ def normalize_pinyin(value: str) -> str:
     )
 
 
+def pinyin_tone(value: str) -> int:
+    if any(char in value for char in "āēīōūǖĀĒĪŌŪǕ"):
+        return 1
+    if any(char in value for char in "áéíóúǘÁÉÍÓÚǗ"):
+        return 2
+    if any(char in value for char in "ǎěǐǒǔǚǍĚǏǑǓǙ"):
+        return 3
+    if any(char in value for char in "àèìòùǜÀÈÌÒÙǛ"):
+        return 4
+    return 5
+
+
 def build_transform() -> transforms.Compose:
     return transforms.Compose(
         [
@@ -151,19 +163,21 @@ class HanziSearchService:
         self,
         image: Image.Image,
         top_k: int,
+        tone: int | None,
         hsk_level: int | None,
         strokes_min: int | None,
         strokes_max: int | None,
     ) -> dict[str, Any]:
         tensor = self.transform(image.convert("RGB")).unsqueeze(0).to(self.device)
         query_vector = self.model(tensor).squeeze(0)
-        candidates = self._rank(query_vector, top_k, hsk_level, strokes_min, strokes_max)
+        candidates = self._rank(query_vector, top_k, tone, hsk_level, strokes_min, strokes_max)
         return self._response("image", "image", top_k, candidates)
 
     def search_text(
         self,
         query: str,
         top_k: int,
+        tone: int | None,
         hsk_level: int | None,
         strokes_min: int | None,
         strokes_max: int | None,
@@ -172,20 +186,10 @@ class HanziSearchService:
         if seed_indices:
             vectors = self.prototypes[seed_indices]
             query_vector = nn.functional.normalize(vectors.mean(dim=0), p=2, dim=0)
-            candidates = self._rank(query_vector, top_k, hsk_level, strokes_min, strokes_max)
+            candidates = self._rank(query_vector, top_k, tone, hsk_level, strokes_min, strokes_max)
             return self._response(query, "text", top_k, candidates)
 
-        pinyin_matches = self._pinyin_matches(query)
-        candidates: list[dict[str, Any]] = []
-        for idx, score in pinyin_matches:
-            meta = self.metadata.get(self.classes[idx], {})
-            if not self._passes_filters(meta, hsk_level, strokes_min, strokes_max):
-                continue
-            candidates.append(self._candidate(idx, score))
-            if len(candidates) >= top_k:
-                break
-
-        return self._response(query, "text", top_k, candidates)
+        return self._response(query, "text", top_k, [])
 
     def _direct_char_indices(self, query: str) -> list[int]:
         q = query.strip()
@@ -198,7 +202,7 @@ class HanziSearchService:
                 direct_matches.append(self.class_to_index[char])
         return list(dict.fromkeys(direct_matches))
 
-    def _pinyin_matches(self, query: str) -> list[tuple[int, float]]:
+    def _pinyin_matches(self, query: str, tone: int | None) -> list[tuple[int, float]]:
         q = query.strip()
         if not q:
             return []
@@ -212,6 +216,8 @@ class HanziSearchService:
             pinyin_values = entry.get("pinyin") or []
             if isinstance(pinyin_values, str):
                 pinyin_values = [pinyin_values]
+            if tone is not None and not any(pinyin_tone(str(value)) == tone for value in pinyin_values):
+                continue
             normalized_values = [normalize_pinyin(str(value)) for value in pinyin_values]
             if normalized_query in normalized_values:
                 exact.append((idx, 1.0))
@@ -227,6 +233,7 @@ class HanziSearchService:
         self,
         query_vector: torch.Tensor,
         top_k: int,
+        tone: int | None,
         hsk_level: int | None,
         strokes_min: int | None,
         strokes_max: int | None,
@@ -238,7 +245,7 @@ class HanziSearchService:
         for idx in ranked:
             char = self.classes[idx]
             meta = self.metadata.get(char, {})
-            if not self._passes_filters(meta, hsk_level, strokes_min, strokes_max):
+            if not self._passes_filters(meta, tone, hsk_level, strokes_min, strokes_max):
                 continue
 
             score = max(0.0, min(1.0, float(scores[idx].item())))
@@ -268,10 +275,16 @@ class HanziSearchService:
     @staticmethod
     def _passes_filters(
         meta: dict[str, Any],
+        tone: int | None,
         hsk_level: int | None,
         strokes_min: int | None,
         strokes_max: int | None,
     ) -> bool:
+        pinyin = meta.get("pinyin") or []
+        if isinstance(pinyin, str):
+            pinyin = [pinyin]
+        if tone is not None and not any(pinyin_tone(str(value)) == tone for value in pinyin):
+            return False
         meta_hsk_level = to_int(meta.get("hsk_level"))
         if hsk_level is not None and meta_hsk_level != hsk_level:
             return False
@@ -323,6 +336,7 @@ def health() -> dict[str, Any]:
 async def search_by_image(
     image: UploadFile = File(...),
     top_k: int = Query(10, ge=1, le=50),
+    tone: int | None = Query(None, ge=1, le=5),
     hsk_level: int | None = Query(None, ge=1, le=6),
     strokes_min: int | None = Query(None, ge=1),
     strokes_max: int | None = Query(None, ge=1),
@@ -333,16 +347,17 @@ async def search_by_image(
         raise HTTPException(status_code=400, detail="Invalid image file.") from exc
 
     service = get_service()
-    return service.search_image(pil_image, top_k, hsk_level, strokes_min, strokes_max)
+    return service.search_image(pil_image, top_k, tone, hsk_level, strokes_min, strokes_max)
 
 
 @app.get("/search/by-text")
 def search_by_text(
     q: str = Query(..., min_length=1),
     top_k: int = Query(10, ge=1, le=50),
+    tone: int | None = Query(None, ge=1, le=5),
     hsk_level: int | None = Query(None, ge=1, le=6),
     strokes_min: int | None = Query(None, ge=1),
     strokes_max: int | None = Query(None, ge=1),
 ) -> dict[str, Any]:
     service = get_service()
-    return service.search_text(q, top_k, hsk_level, strokes_min, strokes_max)
+    return service.search_text(q, top_k, tone, hsk_level, strokes_min, strokes_max)

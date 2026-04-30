@@ -3,6 +3,14 @@
 import { useCallback, useState } from "react";
 import type { SearchFilters } from "../types/search";
 
+const TONE_BUTTONS = [
+  { value: 1, label: "ā", title: "1 тон" },
+  { value: 2, label: "á", title: "2 тон" },
+  { value: 3, label: "ǎ", title: "3 тон" },
+  { value: 4, label: "à", title: "4 тон" },
+  { value: 5, label: "a", title: "5 тон" },
+];
+
 type Props = {
   query: string;
   onQueryChange: (q: string) => void;
@@ -59,6 +67,33 @@ export function SearchSidebar({
         >
           <span className="text-lg">⌕</span>
         </button>
+      </div>
+
+      <div className="mb-3 grid grid-cols-5 gap-2">
+        {TONE_BUTTONS.map((tone) => {
+          const selected = filters.tone === tone.value;
+          return (
+            <button
+              key={tone.value}
+              type="button"
+              title={tone.title}
+              aria-pressed={selected}
+              onClick={() =>
+                onFiltersChange({
+                  ...filters,
+                  tone: selected ? undefined : tone.value,
+                })
+              }
+              className={`rounded-[18px] py-3 text-lg font-medium transition ${
+                selected
+                  ? "bg-[#b50709] text-white"
+                  : "bg-[#bcb6b8] text-[#4a3535] hover:bg-[#ada8aa]"
+              }`}
+            >
+              {tone.label}
+            </button>
+          );
+        })}
       </div>
 
       <div className="mb-3 grid grid-cols-2 gap-3">

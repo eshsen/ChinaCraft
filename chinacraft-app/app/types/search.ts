@@ -1,5 +1,6 @@
 export type SearchFilters = {
   topK: number;
+  tone?: number;
   hskLevel?: number;
   strokesMin?: number;
   strokesMax?: number;

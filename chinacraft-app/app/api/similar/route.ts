@@ -7,6 +7,7 @@ type Body = {
   imageDataUrl?: string | null;
   filters?: {
     topK?: number;
+    tone?: number;
     hskLevel?: number;
     strokesMin?: number;
     strokesMax?: number;
@@ -35,6 +36,7 @@ export async function POST(req: Request) {
   const params = new URLSearchParams({
     top_k: String(topK),
   });
+  if (filters.tone) params.set("tone", String(filters.tone));
   if (filters.hskLevel) params.set("hsk_level", String(filters.hskLevel));
   if (filters.strokesMin) params.set("strokes_min", String(filters.strokesMin));
   if (filters.strokesMax) params.set("strokes_max", String(filters.strokesMax));

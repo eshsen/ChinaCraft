@@ -2,10 +2,15 @@
 
 import { useState } from "react";
 import { DrawingPad } from "./components/DrawingPad";
+import { Header } from "./components/Header";
 import { HanziLookupPanel } from "./components/HanziLookupPanel";
 import { ResultGrid } from "./components/ResultGrid";
 import { SearchSidebar } from "./components/SearchSidebar";
 import type { SearchFilters } from "./types/search";
+
+function containsHanzi(value: string): boolean {
+  return /[\u3400-\u9fff]/.test(value);
+}
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -14,6 +19,8 @@ export default function Home() {
   const [trigger, setTrigger] = useState(0);
   const [filters, setFilters] = useState<SearchFilters>({ topK: 10 });
   const [showTranslations, setShowTranslations] = useState(true);
+  const canSearchSimilar =
+    Boolean(submittedImage) || containsHanzi(submittedQuery.trim());
   const showResults = submittedQuery.trim().length > 0 || Boolean(submittedImage);
 
   const submitText = () => {
@@ -28,11 +35,22 @@ export default function Home() {
     setTrigger((v) => v + 1);
   };
 
+  const pickHanzi = (char: string) => {
+    setSearchQuery(char);
+    setSubmittedImage(null);
+    setSubmittedQuery(char);
+    setTrigger((v) => v + 1);
+  };
+
   return (
     <div className="min-h-screen w-full bg-[#d9d9d9] px-6 pb-6 pt-3 text-[#b08f8f]">
       <Header />
       <div className="mb-10 flex gap-7">
-        <DrawingPad onSubmitImage={submitImage} />
+        <DrawingPad
+          onSubmitImage={submitImage}
+          showTranslations={showTranslations}
+          onToggleTranslations={() => setShowTranslations((value) => !value)}
+        />
         <SearchSidebar
           query={searchQuery}
           onQueryChange={setSearchQuery}
@@ -41,52 +59,26 @@ export default function Home() {
           onSubmitText={submitText}
         />
       </div>
-      <div className="mb-6 flex justify-end">
-        <button
-          type="button"
-          onClick={() => setShowTranslations((value) => !value)}
-          className="rounded-full bg-[#bcb6b8] px-5 py-2 text-sm font-medium text-[#4a3535] transition hover:bg-[#ada8aa]"
-        >
-          {showTranslations ? "Скрыть перевод" : "Показать перевод"}
-        </button>
-      </div>
       {showResults ? (
         <>
           <HanziLookupPanel
             query={submittedQuery}
             trigger={trigger}
+            tone={filters.tone}
             showTranslations={showTranslations}
+            onPickHanzi={pickHanzi}
           />
-          <ResultGrid
-            query={submittedQuery}
-            imageDataUrl={submittedImage}
-            trigger={trigger}
-            filters={filters}
-            showTranslations={showTranslations}
-          />
+          {canSearchSimilar ? (
+            <ResultGrid
+              query={submittedQuery}
+              imageDataUrl={submittedImage}
+              trigger={trigger}
+              filters={filters}
+              showTranslations={showTranslations}
+            />
+          ) : null}
         </>
       ) : null}
-    </div>
-  );
-}
-
-function Header() {
-  return (
-    <div className="mb-14 flex items-start justify-between">
-      <div className="h-14 w-14 rounded-sm bg-[#b50709] p-2">
-        <div className="relative h-full w-full">
-          <div className="absolute left-0 top-1 h-0.5 w-7 bg-white" />
-          <div className="absolute left-0 top-4 h-0.5 w-7 bg-white" />
-          <div className="absolute left-4 top-0 h-10 w-0.5 bg-white" />
-          <div className="absolute left-2 top-6 h-0.5 w-5 bg-white" />
-        </div>
-      </div>
-      <button
-        type="button"
-        className="text-xl font-light tracking-wide text-[#b08f8f]"
-      >
-        Поддержать
-      </button>
     </div>
   );
 }

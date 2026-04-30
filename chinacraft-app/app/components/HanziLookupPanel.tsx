@@ -9,7 +9,6 @@ type HanziEntry = {
   strokes: number;
   pinyin: string[];
   radicals: string;
-  frequency: number;
   structure: string;
   translation_ru: string;
   hsk_level?: number;
@@ -22,10 +21,18 @@ type HanziLookupResponse = {
 type Props = {
   query: string;
   trigger: number;
+  tone?: number;
   showTranslations: boolean;
+  onPickHanzi: (char: string) => void;
 };
 
-export function HanziLookupPanel({ query, trigger, showTranslations }: Props) {
+export function HanziLookupPanel({
+  query,
+  trigger,
+  tone,
+  showTranslations,
+  onPickHanzi,
+}: Props) {
   const [entries, setEntries] = useState<HanziEntry[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -40,10 +47,15 @@ export function HanziLookupPanel({ query, trigger, showTranslations }: Props) {
     const run = async () => {
       try {
         setLoading(true);
-        const response = await fetch(
-          `/api/hanzi?q=${encodeURIComponent(trimmed)}&limit=8`,
-          { signal: controller.signal }
-        );
+        const params = new URLSearchParams({
+          q: trimmed,
+          limit: "8",
+        });
+        if (tone) params.set("tone", String(tone));
+
+        const response = await fetch(`/api/hanzi?${params.toString()}`, {
+          signal: controller.signal,
+        });
         if (!response.ok) throw new Error("lookup failed");
         const data = (await response.json()) as HanziLookupResponse;
         setEntries(data.entries ?? []);
@@ -56,7 +68,7 @@ export function HanziLookupPanel({ query, trigger, showTranslations }: Props) {
 
     run();
     return () => controller.abort();
-  }, [query, trigger]);
+  }, [query, trigger, tone]);
 
   if (!query.trim()) return null;
 
@@ -64,7 +76,7 @@ export function HanziLookupPanel({ query, trigger, showTranslations }: Props) {
     <section className="mb-6 rounded-[22px] bg-[#bcb6b8] p-4 text-[#4a3535]">
       <div className="mb-3 flex items-center justify-between">
         <h2 className="text-base font-medium tracking-wide">
-          Результаты по пиньиню / иероглифу
+          Выберите иероглиф для поиска похожих
         </h2>
         <span className="text-xs text-[#6f5d5d]">{entries.length} найдено</span>
       </div>
@@ -78,9 +90,11 @@ export function HanziLookupPanel({ query, trigger, showTranslations }: Props) {
       ) : (
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
           {entries.map((entry) => (
-            <article
+            <button
               key={`${entry.char}-${entry.index}`}
-              className="rounded-2xl bg-[#d4cfd1] p-4"
+              type="button"
+              onClick={() => onPickHanzi(entry.char)}
+              className="rounded-2xl bg-[#d4cfd1] p-4 text-left transition hover:bg-[#cec7ca] focus:outline-none focus:ring-2 focus:ring-[#b50709]/40"
             >
               <div className="mb-2 flex items-start justify-between">
                 <div>
@@ -118,12 +132,11 @@ export function HanziLookupPanel({ query, trigger, showTranslations }: Props) {
                   <span className="text-[#6f5d5d]">Структура:</span>{" "}
                   {entry.structure || "—"}
                 </div>
-                <div>
-                  <span className="text-[#6f5d5d]">Частотность:</span>{" "}
-                  {entry.frequency}
-                </div>
               </div>
-            </article>
+              <div className="mt-3 rounded-full bg-[#bcb6b8] px-3 py-1 text-center text-xs font-medium text-[#4a3535]">
+                Искать похожие
+              </div>
+            </button>
           ))}
         </div>
       )}

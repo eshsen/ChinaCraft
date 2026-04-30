@@ -12,6 +12,8 @@ type Tool = "brush" | "eraser";
 
 type Props = {
   onSubmitImage: (dataUrl: string) => void;
+  showTranslations: boolean;
+  onToggleTranslations: () => void;
 };
 
 function normalizeImageDataUrl(dataUrl: string): Promise<string> {
@@ -45,7 +47,11 @@ function normalizeImageDataUrl(dataUrl: string): Promise<string> {
   });
 }
 
-export function DrawingPad({ onSubmitImage }: Props) {
+export function DrawingPad({
+  onSubmitImage,
+  showTranslations,
+  onToggleTranslations,
+}: Props) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [tool, setTool] = useState<Tool>("brush");
@@ -271,15 +277,24 @@ export function DrawingPad({ onSubmitImage }: Props) {
       >
         Отправить фото
       </button>
-      <label className="mt-2 block w-full cursor-pointer rounded-full bg-[#bcb6b8] py-2.5 text-center text-sm font-medium text-[#4a3535] transition hover:opacity-90">
-        Загрузить свое фото
-        <input
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={onUploadFile}
-        />
-      </label>
+      <div className="mt-2 grid grid-cols-2 gap-3">
+        <label className="block w-full cursor-pointer rounded-full bg-[#bcb6b8] py-2.5 text-center text-sm font-medium text-[#4a3535] transition hover:opacity-90">
+          Загрузить свое фото
+          <input
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={onUploadFile}
+          />
+        </label>
+        <button
+          type="button"
+          onClick={onToggleTranslations}
+          className="w-full rounded-full bg-[#bcb6b8] py-2.5 text-sm font-medium text-[#4a3535] transition hover:bg-[#ada8aa]"
+        >
+          {showTranslations ? "Скрыть перевод" : "Показать перевод"}
+        </button>
+      </div>
     </div>
   );
 }
