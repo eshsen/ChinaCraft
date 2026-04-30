@@ -22,9 +22,10 @@ type HanziLookupResponse = {
 type Props = {
   query: string;
   trigger: number;
+  showTranslations: boolean;
 };
 
-export function HanziLookupPanel({ query, trigger }: Props) {
+export function HanziLookupPanel({ query, trigger, showTranslations }: Props) {
   const [entries, setEntries] = useState<HanziEntry[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -100,10 +101,12 @@ export function HanziLookupPanel({ query, trigger }: Props) {
                   <span className="text-[#6f5d5d]">Пиньинь:</span>{" "}
                   {entry.pinyin.join(", ")}
                 </div>
-                <div>
-                  <span className="text-[#6f5d5d]">Перевод:</span>{" "}
-                  {entry.translation_ru || "—"}
-                </div>
+                {showTranslations ? (
+                  <div>
+                    <span className="text-[#6f5d5d]">Перевод:</span>{" "}
+                    {entry.translation_ru || "—"}
+                  </div>
+                ) : null}
                 <div>
                   <span className="text-[#6f5d5d]">Ключ:</span>{" "}
                   {entry.radicals || "—"}

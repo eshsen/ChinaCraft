@@ -12,7 +12,8 @@ export default function Home() {
   const [submittedQuery, setSubmittedQuery] = useState("");
   const [submittedImage, setSubmittedImage] = useState<string | null>(null);
   const [trigger, setTrigger] = useState(0);
-  const [filters, setFilters] = useState<SearchFilters>({ topK: 6 });
+  const [filters, setFilters] = useState<SearchFilters>({ topK: 10 });
+  const [showTranslations, setShowTranslations] = useState(true);
   const showResults = submittedQuery.trim().length > 0 || Boolean(submittedImage);
 
   const submitText = () => {
@@ -40,14 +41,28 @@ export default function Home() {
           onSubmitText={submitText}
         />
       </div>
+      <div className="mb-6 flex justify-end">
+        <button
+          type="button"
+          onClick={() => setShowTranslations((value) => !value)}
+          className="rounded-full bg-[#bcb6b8] px-5 py-2 text-sm font-medium text-[#4a3535] transition hover:bg-[#ada8aa]"
+        >
+          {showTranslations ? "Скрыть перевод" : "Показать перевод"}
+        </button>
+      </div>
       {showResults ? (
         <>
-          <HanziLookupPanel query={submittedQuery} trigger={trigger} />
+          <HanziLookupPanel
+            query={submittedQuery}
+            trigger={trigger}
+            showTranslations={showTranslations}
+          />
           <ResultGrid
             query={submittedQuery}
             imageDataUrl={submittedImage}
             trigger={trigger}
             filters={filters}
+            showTranslations={showTranslations}
           />
         </>
       ) : null}

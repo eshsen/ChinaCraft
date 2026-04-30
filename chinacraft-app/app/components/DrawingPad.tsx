@@ -14,6 +14,37 @@ type Props = {
   onSubmitImage: (dataUrl: string) => void;
 };
 
+function normalizeImageDataUrl(dataUrl: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => {
+      const out = document.createElement("canvas");
+      out.width = 128;
+      out.height = 128;
+      const octx = out.getContext("2d");
+      if (!octx) {
+        reject(new Error("canvas context unavailable"));
+        return;
+      }
+
+      octx.fillStyle = "#ffffff";
+      octx.fillRect(0, 0, out.width, out.height);
+      octx.imageSmoothingEnabled = true;
+      octx.imageSmoothingQuality = "high";
+
+      const scale = Math.min(out.width / image.width, out.height / image.height);
+      const width = Math.max(1, image.width * scale);
+      const height = Math.max(1, image.height * scale);
+      const x = (out.width - width) / 2;
+      const y = (out.height - height) / 2;
+      octx.drawImage(image, x, y, width, height);
+      resolve(out.toDataURL("image/png"));
+    };
+    image.onerror = () => reject(new Error("image decode failed"));
+    image.src = dataUrl;
+  });
+}
+
 export function DrawingPad({ onSubmitImage }: Props) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -138,9 +169,19 @@ export function DrawingPad({ onSubmitImage }: Props) {
   const onUploadFile = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      e.currentTarget.value = "";
+      return;
+    }
+
     const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === "string") onSubmitImage(reader.result);
+    reader.onload = async () => {
+      if (typeof reader.result !== "string") return;
+      try {
+        onSubmitImage(await normalizeImageDataUrl(reader.result));
+      } catch {
+        /* ignore invalid uploads */
+      }
     };
     reader.readAsDataURL(file);
     e.currentTarget.value = "";

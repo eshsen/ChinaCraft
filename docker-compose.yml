@@ -1,9 +1,26 @@
 services:
+  ml:
+    build:
+      context: .
+      dockerfile: ./ml-service/Dockerfile
+    container_name: chinacraft-ml
+    environment:
+      MODEL_DIR: /app/Model
+      HANZI_DICTIONARY_PATH: /app/SQL/hanzi_with_translations.json
+    volumes:
+      - ./Model:/app/Model:ro
+    ports:
+      - "8000:8000"
+
   web:
     build:
       context: ./chinacraft-app
       dockerfile: Dockerfile
     container_name: chinacraft-web
+    environment:
+      ML_SERVICE_URL: http://ml:8000
+    depends_on:
+      - ml
     ports:
       - "3000:3000"
 

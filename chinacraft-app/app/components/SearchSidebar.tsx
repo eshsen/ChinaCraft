@@ -71,7 +71,7 @@ export function SearchSidebar({
             }
             className="mt-1 h-8 w-full rounded-full bg-[#ada8aa] px-3 text-sm outline-none"
           >
-            {[3, 6, 9, 12].map((n) => (
+            {[3, 6, 10, 12].map((n) => (
               <option key={n} value={n}>
                 {n}
               </option>

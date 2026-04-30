@@ -8,9 +8,16 @@ type Props = {
   imageDataUrl: string | null;
   filters: SearchFilters;
   trigger: number;
+  showTranslations: boolean;
 };
 
-export function ResultGrid({ query, imageDataUrl, filters, trigger }: Props) {
+export function ResultGrid({
+  query,
+  imageDataUrl,
+  filters,
+  trigger,
+  showTranslations,
+}: Props) {
   const [result, setResult] = useState<SearchResponse | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -84,7 +91,9 @@ export function ResultGrid({ query, imageDataUrl, filters, trigger }: Props) {
             <div>Пиньинь: {item.pinyin?.join(", ") || "—"}</div>
             <div>HSK: {item.hsk_level ?? "—"}</div>
             <div>Штрихи: {item.strokes ?? "—"}</div>
-            <div>Перевод: {item.translation_ru || "—"}</div>
+            {showTranslations ? (
+              <div>Перевод: {item.translation_ru || "—"}</div>
+            ) : null}
           </div>
           {item.sample_image ? (
             <div className="mt-3 truncate text-xs opacity-75">{item.sample_image}</div>

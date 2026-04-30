@@ -13,6 +13,14 @@ type Body = {
   };
 };
 
+async function readPayload(response: Response) {
+  try {
+    return await response.json();
+  } catch {
+    return { detail: response.statusText || "ML service returned invalid JSON", candidates: [] };
+  }
+}
+
 function toBlobFromDataUrl(dataUrl: string): Blob {
   const [head, base64] = dataUrl.split(",", 2);
   const contentType = head.match(/data:(.*);base64/)?.[1] ?? "image/png";
@@ -23,7 +31,7 @@ function toBlobFromDataUrl(dataUrl: string): Blob {
 export async function POST(req: Request) {
   const body = (await req.json()) as Body;
   const filters = body.filters ?? {};
-  const topK = filters.topK ?? 6;
+  const topK = filters.topK ?? 10;
   const params = new URLSearchParams({
     top_k: String(topK),
   });
@@ -42,7 +50,7 @@ export async function POST(req: Request) {
           body: fd,
         }
       );
-      const payload = await response.json();
+      const payload = await readPayload(response);
       return NextResponse.json(payload, { status: response.status });
     }
 
@@ -54,11 +62,14 @@ export async function POST(req: Request) {
       `${ML_BASE_URL}/search/by-text?${params.toString()}`,
       { method: "GET" }
     );
-    const payload = await response.json();
+    const payload = await readPayload(response);
     return NextResponse.json(payload, { status: response.status });
-  } catch {
+  } catch (error) {
     return NextResponse.json(
-      { detail: "ML service unavailable", candidates: [] },
+      {
+        detail: error instanceof Error ? error.message : "ML service unavailable",
+        candidates: [],
+      },
       { status: 503 }
     );
   }
