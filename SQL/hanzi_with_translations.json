@@ -122,7 +122,7 @@
     "strokes": 2,
     "pinyin": ["jī", "jǐ"],
     "radicals": "几",
-    "translation_ru": ["сколько?", "несколько", "немного"],
+    "translation_ru": "сколько?, несколько, немного",
     "hsk_level": 1
   },
   {
@@ -269,7 +269,7 @@
     "strokes": 3,
     "pinyin": ["xià"],
     "radicals": "一",
-    "translation_ru": ["низ", "будущий", "под"],
+    "translation_ru": "низ, будущий, под",
     "hsk_level": 1
   },
   {
@@ -323,7 +323,7 @@
     "strokes": 3,
     "pinyin": ["shàng", "shǎng"],
     "radicals": "一",
-    "translation_ru": ["вверх", "прошлый", "на"],
+    "translation_ru": "вверх, прошлый, на",
     "hsk_level": 1
   },
   {
@@ -404,7 +404,7 @@
     "strokes": 3,
     "pinyin": ["gè", "gě"],
     "radicals": "人",
-    "translation_ru": ["универсальное счетное слово", "штука"],
+    "translation_ru": "универсальное счетное слово, штука",
     "hsk_level": 1
   },
   {
@@ -708,7 +708,7 @@
     "strokes": 4,
     "pinyin": ["tiān"],
     "radicals": "大",
-    "translation_ru": ["день", "небо"],
+    "translation_ru": "день, небо",
     "hsk_level": 1
   },
   {
@@ -834,7 +834,7 @@
     "strokes": 4,
     "pinyin": ["bù", "fǒu"],
     "radicals": "一",
-    "translation_ru": ["нет", "не"],
+    "translation_ru": "нет, не",
     "hsk_level": 1
   },
   {
@@ -851,7 +851,7 @@
     "strokes": 4,
     "pinyin": ["tài"],
     "radicals": "大",
-    "translation_ru": ["слишком", "чрезвычайно"],
+    "translation_ru": "слишком, чрезвычайно",
     "hsk_level": 1
   },
   {
@@ -1371,7 +1371,7 @@
     "strokes": 4,
     "pinyin": ["yuè"],
     "radicals": "月",
-    "translation_ru": ["луна", "месяц"],
+    "translation_ru": "луна, месяц",
     "hsk_level": 1
   },
   {
@@ -2219,7 +2219,7 @@
     "strokes": 5,
     "pinyin": ["hào", "háo"],
     "radicals": "口",
-    "translation_ru": ["номер", "число (месяца)"],
+    "translation_ru": "номер, число (месяца)",
     "hsk_level": 1
   },
   {
@@ -2307,7 +2307,7 @@
     "strokes": 5,
     "pinyin": ["jiào"],
     "radicals": "口",
-    "translation_ru": ["кричать", "звать", "подзывать"],
+    "translation_ru": "кричать, звать, подзывать",
     "hsk_level": 1
   },
   {
@@ -2741,7 +2741,7 @@
     "strokes": 5,
     "pinyin": ["zhǔ"],
     "radicals": "丶",
-    "translation_ru": ["владеть", "принимать гостей", "хозяин"],
+    "translation_ru": "владеть, принимать гостей, хозяин",
     "hsk_level": 1
   },
   {
@@ -2891,7 +2891,7 @@
     "strokes": 5,
     "pinyin": ["xiě"],
     "radicals": "冖",
-    "translation_ru": "Писать",
+    "translation_ru": "писать",
     "hsk_level": 1
   },
   {
@@ -4459,7 +4459,7 @@
     "strokes": 6,
     "pinyin": ["huì", "kuài"],
     "radicals": "人",
-    "translation_ru": ["мочь", "собрание"],
+    "translation_ru": "уметь, собрание",
     "hsk_level": 1
   },
   {
@@ -5357,7 +5357,7 @@
     "strokes": 6,
     "pinyin": ["hǎo", "hào"],
     "radicals": "女",
-    "translation_ru": ["хороший", "приятный", "удобный"],
+    "translation_ru": "хороший",
     "hsk_level": 1
   },
   {
@@ -15831,7 +15831,7 @@
     "strokes": 9,
     "pinyin": ["shuō", "shuì", "yuè"],
     "radicals": "讠",
-    "translation_ru": ["объяснять", "говорить"],
+    "translation_ru": "объяснять, говорить",
     "hsk_level": 1
   },
   {
@@ -15986,7 +15986,7 @@
     "strokes": 9,
     "pinyin": ["yuàn"],
     "radicals": "阝",
-    "translation_ru": ["двор", "здание"],
+    "translation_ru": "двор, здание",
     "hsk_level": 1
   },
   {
@@ -19299,7 +19299,7 @@
     "pinyin": ["jiā", "jia"],
     "radicals": "宀",
 
-    "translation_ru": ["дом", "семья"],
+    "translation_ru": "дом, семья",
     "hsk_level": 1
   },
   {
@@ -20278,7 +20278,7 @@
     "strokes": 11,
     "pinyin": ["cài"],
     "radicals": "艹",
-    "translation_ru": ["блюдо", "овощи"],
+    "translation_ru": "блюдо, овощи",
     "hsk_level": 1
   },
   {
@@ -26212,7 +26212,7 @@
     "strokes": 13,
     "pinyin": ["xiǎnɡ"],
     "radicals": "心",
-    "translation_ru": ["думать", "хотеть"],
+    "translation_ru": "думать, хотеть",
     "hsk_level": 1
   },
   {
